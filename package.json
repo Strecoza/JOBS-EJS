@@ -2,6 +2,7 @@
   "name": "jobs-ejs",
   "version": "1.0.0",
   "main": "app.js",
+  "type": "commonjs",
   "scripts": {
     "start": "nodemon app.js",
     "dev": "nodemon app.js"
