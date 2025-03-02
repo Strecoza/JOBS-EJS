@@ -1,7 +1,6 @@
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const User = require("../models/User");
-const bcrypt = require("bcrypt")
 
 const passportInit = () => {
   passport.use(
@@ -15,8 +14,8 @@ const passportInit = () => {
             return done(null, false, { message: "Incorrect credentials." });
           }
 
-          const result = await user.comparePassword(password);
-          if (result) {
+          const isMatch = await user.comparePassword(password);
+          if (isMatch) {
             return done(null, user);
           } else {
             return done(null, false, { message: "Incorrect credentials." });

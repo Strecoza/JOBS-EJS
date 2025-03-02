@@ -1,5 +1,5 @@
 const User = require("../models/User");
-const parseVErr = require("../util/parseValidationErr");
+const parseVErr = require("../util/parseValidationErrs");
 
 const registerShow = (req, res) => {
   res.render("register");
@@ -12,7 +12,7 @@ const registerDo = async (req, res, next) => {
   }
   try {
     await User.create(req.body);
-    //res.redirect("/")
+    res.redirect("/")
   } catch (e) {
     if (e.constructor.name === "ValidationError") {
       parseVErr(e, req);
@@ -23,7 +23,6 @@ const registerDo = async (req, res, next) => {
     }
     return res.render("register", {  errors: flash("errors") });
   }
-  res.redirect("/");
 };
 
 const logoff = (req, res) => {
@@ -40,7 +39,7 @@ const logonShow = (req, res) => {
     return res.redirect("/");
   }
   res.render("logon", 
-    //{errors: req.flash("error"), info: req.flash("info"),}
+    {errors: req.flash("error"), info: req.flash("info"),}
   );
 };
 

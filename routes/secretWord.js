@@ -17,7 +17,6 @@ router.post("/", (req, res) => {
     req.session.secretWord = req.body.secretWord;
     req.flash("info", "The secret word was changed.");
   }
-
   res.redirect("/secretWord");
 });
 
