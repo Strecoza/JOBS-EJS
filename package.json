@@ -2,9 +2,11 @@
   "name": "jobs-ejs",
   "version": "1.0.0",
   "main": "app.js",
+  "type": "commonjs",
   "scripts": {
-    "start": "nodemon app.js",
-    "dev": "nodemon app.js"
+    "dev": "nodemon app.js",
+    "start": "node app.js",
+    "test": "NODE_ENV=test mocha --loader tests/*.js --timeout 5000 --exit"
   },
   "author": "",
   "license": "ISC",
@@ -14,6 +16,7 @@
     "connect-flash": "^0.1.1",
     "connect-mongodb-session": "^5.0.0",
     "cookie-parser": "^1.4.7",
+    "csurf": "^1.10.0",
     "dotenv": "^16.4.7",
     "ejs": "^3.1.10",
     "express": "^4.21.2",
@@ -23,14 +26,20 @@
     "helmet": "^8.0.0",
     "host-csrf": "^1.0.2",
     "mongodb": "^6.13.1",
-    "mongoose": "^8.10.1",
+    "mongoose": "^8.12.1",
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
     "xss-clean": "^0.1.4"
   },
   "devDependencies": {
+    "@faker-js/faker": "^9.5.1",
+    "chai": "^5.2.0",
+    "chai-http": "^5.1.1",
     "eslint": "^9.20.1",
+    "factory-bot": "^6.3.1",
+    "mocha": "^11.1.0",
     "nodemon": "^3.1.9",
-    "prettier": "^3.5.1"
+    "prettier": "^3.5.1",
+    "puppeteer": "^24.3.1"
   }
 }
