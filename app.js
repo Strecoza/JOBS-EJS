@@ -1,7 +1,7 @@
 require ("express-async-errors");
 require ("dotenv").config();
 
-const url = process.env.MONGO_URI;
+const mongoose = require("mongoose");
 const express = require("express");
 const path = require("path");
 const session = require("express-session");
@@ -10,6 +10,13 @@ const flash = require("connect-flash");
 const csrf = require("csurf");
 const cookieParser = require("cookie-parser");
 
+//url for testing
+let mongoURL = process.env.MONGO_URI;
+if (process.env.NODE_ENV == "test") {
+  mongoURL = process.env.MONGO_URI_TEST;
+}
+mongoose.connect( mongoURL, { userNewUrlParser: true, useUnifiedTopology: true,})
+
 //middleware to store flash-msg and user
 const storeLocals = require("./middleware/storeLocals");
 
@@ -17,6 +24,8 @@ const connectDB = require("./db/connect");
 const secretWordRouter = require("./routes/secretWord");
 const auth = require("./middleware/auth");
 const jobsRouter = require("./routes/jobs");
+
+
 
 //attacks protection
 const helmet = require("helmet");
@@ -41,8 +50,6 @@ app.use(helmet());
 app.use(xssClean());
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }));
 
-
-
 //connect mongoDB
 connectDB(process.env.MONGO_URI)
   .then(() => {
@@ -60,7 +67,7 @@ app.set("views", path.join(__dirname, "views"));
 // Setup MongoDB session store
 const store = new MongoDBStore({
   // may throw an error, which won't be caught
-  uri: process.env.MONGO_URI,
+  uri: mongoURL,
   collection: "mySessions",
 });
 store.on("error", (error) => {
@@ -102,6 +109,15 @@ app.use((req,res,next)=> {
   res.locals.user = req.user;
   next();
 })
+
+app.use((req,res,next) => {
+  if (req.path == "/multiply"){
+    res.set("Content-type", "application/json")
+  } else {
+    res.set ("Content-type", "text/html")
+  }
+  next()
+})
   
 // Setup flash middleware
 app.use(flash());
@@ -111,6 +127,22 @@ app.use(storeLocals);
 app.get("/", (req, res) => {
   res.render("index");
 });
+
+//API test
+app.get("/multiply", (req, res) => {
+  const result = req.query.first * req.query.second;
+  res.json({ result });
+});
+
+//test middleware
+//app.use((req, res, next) => {
+  //if (req.path == "/multiply") {
+  //  res.set("Content-Type", "application/json");
+ // } else {
+  //  res.set("Content-Type", "text/html");
+  //}
+  //next();
+//});
 
 //other routes
 app.use("/sessions", require("./routes/sessionRoutes"));
@@ -129,6 +161,22 @@ app.use((err, req, res, next) => {
 });
 
 //await require("./db/connect")(process.env.MONGO_URI);
+//const port = process.env.PORT || 3000;
+//app.listen(port, () =>
+    //console.log(`Server is listening on port ${port}...`));
+
 const port = process.env.PORT || 3000;
-app.listen(port, () =>
-    console.log(`Server is listening on port ${port}...`));
+const start = () => {
+  try {
+    require("./db/connect")(mongoURL);
+    return app.listen(port, () =>
+      console.log(`Server is listening on port ${port}...`),
+    );
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+start();
+
+//module.exports = { app };
