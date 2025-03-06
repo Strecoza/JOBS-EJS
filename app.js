@@ -7,7 +7,9 @@ const path = require("path");
 const session = require("express-session");
 const MongoDBStore = require("connect-mongodb-session")(session);
 const flash = require("connect-flash");
+const csrf = require("csurf");
 const cookieParser = require("cookie-parser");
+
 //middleware to store flash-msg and user
 const storeLocals = require("./middleware/storeLocals");
 
@@ -17,7 +19,6 @@ const auth = require("./middleware/auth");
 const jobsRouter = require("./routes/jobs");
 
 //attacks protection
-const csrf = require("host-csrf");
 const helmet = require("helmet");
 const xssClean = require("xss-clean");
 const rateLimit = require("express-rate-limit");
@@ -30,16 +31,17 @@ const app = express();
 
 //connect cookie-parser
 app.use(cookieParser(process.env.SESSION_SECRET));
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json())
 
+//console.log("CSRF connected:", typeof csrf);
 //CSRF protection
-app.use(csrf());
-  //{protected_operations: ["POST"],development_mode: process.env.NODE_ENV !=="production"}));
+app.use(csrf({ cookie: true}));
 app.use(helmet());
 app.use(xssClean());
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }));
 
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json())
+
 
 //connect mongoDB
 connectDB(process.env.MONGO_URI)
@@ -68,7 +70,7 @@ store.on("error", (error) => {
 const sessionParams = {
   secret: process.env.SESSION_SECRET,
   resave: false,
-  saveUninitialized: true,
+  saveUninitialized: false,
   store: store,
   cookie: { secure: false, sameSite: "strict" },
 };
@@ -78,31 +80,42 @@ if (app.get("env") === "production") {
 }
   
 app.use(session(sessionParams));
-  
-// Setup flash middleware
-//app.use(require("connect-flash")());
-app.use(flash());
-app.use(storeLocals);
 
+//passport connection
 passportInit();
 app.use(passport.initialize());
 app.use(passport.session());
+
+
+//csrf token
+app.use((req, res, next) => {
+  if (req.csrfToken) {
+    res.locals._csrf = req.csrfToken();
+  } else {
+    console.warn("No csrf token")
+  }
+  next();});
+
+//middleware for req.user
+app.use((req,res,next)=> {
+  console.log("app.js req.user before render=" , req.user)
+  res.locals.user = req.user;
+  next();
+})
+  
+// Setup flash middleware
+app.use(flash());
+app.use(storeLocals);
 
 //main page
 app.get("/", (req, res) => {
   res.render("index");
 });
+
 //other routes
 app.use("/sessions", require("./routes/sessionRoutes"));
 app.use("/secretWord", auth, secretWordRouter);
 app.use("/jobs", auth, jobsRouter);
-  
-// Middleware to make flash messages available in views
-app.use((req, res, next) => {
-    res.locals.info = req.flash("info");
-    res.locals.errors = req.flash("error");
-    next();
-});
 
 // 404 handler
 app.use((req, res) => {
@@ -112,9 +125,8 @@ app.use((req, res) => {
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error(err);
-    res.status(500).send(err.message);
+    res.status(500).send("server error:" + err.message);
 });
-
 
 //await require("./db/connect")(process.env.MONGO_URI);
 const port = process.env.PORT || 3000;

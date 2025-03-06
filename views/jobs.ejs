@@ -4,7 +4,7 @@
 
 <h2>Jobs List</h2>
 
-<a href="/jobs/new/<%= job.id %>">
+<a href="/jobs/new">
     <button type="button">Create new Job</button>
   </a>
 
@@ -23,17 +23,17 @@
         <td><%= job.status %></td>
         <td>
             <a href="/jobs/edit/<%= job.id %>">
-            <button type="button">edit</button>
+            <button type="button">Edit</button>
             </a>
         </td>
         <td>
-            <form method = "POST" action="<%= job ? `/jobs/update/${job._id}` : '/jobs' %>">
+            <form method = "POST" action="jobs/update/<%= job._id %>">
                 <input type="hidden" name="_csrf" value="<%= _csrf %>" />
-                <button type="button">update</button>
+                <button type="submit">Update</button>
             </form>
         </td>
         <td>
-            <form method="POST" action="/jobs/delete/<%= job.id %>" style="display: inline">
+            <form method="POST" action="/jobs/delete/<%= job._id %>" style="display: inline">
                 <button>delete</button>
                 <input type="hidden" name="_csrf" value="<%= _csrf %>" />
             </form>

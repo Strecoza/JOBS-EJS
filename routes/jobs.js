@@ -18,7 +18,7 @@ router.get("/new", auth, showNewJobForm);
 //Add new job
 router.post("/", auth, createJob);
 //Edit job form
-router.get("/edit/:edit", auth, showEditJobForm);
+router.get("/edit/:id", auth, showEditJobForm);
 //Update job
 router.post("/update/:id", auth, updateJob);
 //Delete job
